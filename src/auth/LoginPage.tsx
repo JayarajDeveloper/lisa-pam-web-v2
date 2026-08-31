@@ -14,7 +14,7 @@ export function LoginPage() {
       setError('Enter an email and a password (4+ characters).');
       return;
     }
-    signIn(email, password);
+    signIn(email);
   }
 
   return (
@@ -23,9 +23,7 @@ export function LoginPage() {
         <div className="auth-hero-inner">
           <BrandLogo variant="light" />
           <p className="eyebrow">Ops console</p>
-          <h1>
-            Run LISA PAM from <span style={{ color: '#ffffff' }}>one cockpit</span>
-          </h1>
+          <h1>Run LISA PAM from one cockpit</h1>
           <p>
             Fleet, alerts, intelligence, and reports for Manureva admins. Customers use Lisa-App on
             the borne.
@@ -50,7 +48,7 @@ export function LoginPage() {
             <input
               id="email"
               type="email"
-              autoComplete="username"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -69,7 +67,7 @@ export function LoginPage() {
             />
           </div>
 
-          <button className="btn" type="submit" style={{ width: '100%' }}>
+          <button className="btn block" type="submit">
             Continue
           </button>
           <p className="hint">UI only — any email and password signs you in locally.</p>

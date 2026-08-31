@@ -8,31 +8,42 @@ export type SessionUser = {
 
 const STORAGE_KEY = 'lisa-pam-web-v2-session';
 
+function parseUser(value: unknown): SessionUser | null {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as Record<string, unknown>;
+  if (typeof row.email !== 'string' || typeof row.name !== 'string') return null;
+  if (row.role !== 'owner' && row.role !== 'admin') return null;
+  return { email: row.email, name: row.name, role: row.role };
+}
+
 function readSession(): SessionUser | null {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as SessionUser;
+    const user = parseUser(JSON.parse(raw));
+    if (!user) sessionStorage.removeItem(STORAGE_KEY);
+    return user;
   } catch {
+    sessionStorage.removeItem(STORAGE_KEY);
     return null;
   }
 }
 
 const AuthContext = createContext<{
   user: SessionUser | null;
-  signIn: (email: string, password: string) => void;
+  signIn: (email: string) => void;
   signOut: () => void;
 } | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<SessionUser | null>(() => readSession());
+  const [user, setUser] = useState<SessionUser | null>(readSession);
 
   const value = useMemo(
     () => ({
       user,
-      signIn(email: string, _password: string) {
+      signIn(email: string) {
         const next: SessionUser = {
-          email: email.trim(),
+          email: email.trim().toLowerCase(),
           name: email.split('@')[0]?.replace(/[._]/g, ' ') || 'Admin',
           role: 'admin',
         };

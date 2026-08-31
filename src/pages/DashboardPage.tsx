@@ -5,19 +5,22 @@ import {
   MOCK_SPECIES,
   MOCK_TREND,
 } from '../data/mock';
-import { LineChart, SpeciesDonut } from '../components/charts';
-import { Gauge, Icon, PageToolbar } from '../components/icons';
-import { Card, Chip, Empty, StatusChip, relativeTime } from '../components/ui';
+import { Gauge, LineChart, SpeciesDonut } from '../components/charts';
+import { Card, CardHead, Chip, Empty, PageToolbar, StatusChip, relativeTime } from '../components/ui';
 
 export function DashboardPage() {
   const rows = MOCK_DEVICES;
   const online = rows.filter((d) => d.status === 'online').length;
   const offline = rows.filter((d) => d.status === 'offline').length;
   const silent = rows.filter((d) => d.status === 'never_reported').length;
+  const attention = offline + silent;
   const healthPct = rows.length === 0 ? 0 : Math.round((online / rows.length) * 100);
   const catchTotal = MOCK_SPECIES.reduce((sum, row) => sum + row.count, 0);
   const maxHotspot = Math.max(1, ...MOCK_HOTSPOTS.map((h) => h.weekCaptures));
   const critical = MOCK_ALERTS.filter((a) => a.severity === 'critical').length;
+  const reachablePct =
+    rows.length === 0 ? 0 : Math.round((1 - offline / Math.max(rows.length, 1)) * 100);
+  const clearPct = Math.max(0, 100 - Math.round((critical / Math.max(MOCK_ALERTS.length, 1)) * 100));
 
   return (
     <>
@@ -51,43 +54,28 @@ export function DashboardPage() {
 
         <Card className="kpi-mini span-4">
           <div className="stat-label">Attention needed</div>
-          <div
-            className="metric"
-            style={{ color: offline + silent > 0 ? 'var(--danger)' : undefined }}
-          >
-            {offline + silent}
-          </div>
-          <div className={`delta ${offline + silent > 0 ? 'down' : 'up'}`}>
+          <div className={`metric${attention > 0 ? ' danger' : ''}`}>{attention}</div>
+          <div className={`delta ${attention > 0 ? 'down' : 'up'}`}>
             {offline} offline · {silent} never reported
           </div>
         </Card>
 
         <Card className="span-8">
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-            <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Icon name="chart" />
-              Catch trend
-            </h2>
-            <Chip>14 days</Chip>
-          </div>
-          <div style={{ marginTop: '0.75rem' }}>
-            <LineChart points={MOCK_TREND} label="Captures" colour="var(--accent)" />
+          <CardHead icon="chart" extra={<Chip>14 days</Chip>}>
+            Catch trend
+          </CardHead>
+          <div className="mt">
+            <LineChart points={MOCK_TREND} label="Captures" />
           </div>
         </Card>
 
         <Card className="span-4">
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Icon name="spark" />
-            Species mix
-          </h2>
-          <SpeciesDonut counts={MOCK_SPECIES} size={132} />
+          <CardHead icon="spark">Species mix</CardHead>
+          <SpeciesDonut counts={MOCK_SPECIES} />
         </Card>
 
         <Card className="span-4">
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Icon name="hotspots" />
-            Top localities
-          </h2>
+          <CardHead icon="hotspots">Top localities</CardHead>
           {MOCK_HOTSPOTS.length === 0 ? (
             <Empty>No localities scored yet</Empty>
           ) : (
@@ -113,35 +101,16 @@ export function DashboardPage() {
         </Card>
 
         <Card className="span-4">
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Icon name="shield" />
-            Coverage
-          </h2>
+          <CardHead icon="shield">Coverage</CardHead>
           <div className="gauge-row">
             <Gauge value={healthPct} label="Online" color="var(--ok)" />
-            <Gauge
-              value={
-                rows.length === 0 ? 0 : Math.round((1 - offline / Math.max(rows.length, 1)) * 100)
-              }
-              label="Reachable"
-              color="var(--info)"
-            />
-            <Gauge
-              value={Math.max(
-                0,
-                100 - Math.round((critical / Math.max(MOCK_ALERTS.length, 1)) * 100),
-              )}
-              label="Clear"
-              color="var(--warn)"
-            />
+            <Gauge value={reachablePct} label="Reachable" color="var(--info)" />
+            <Gauge value={clearPct} label="Clear" color="var(--warn)" />
           </div>
         </Card>
 
         <Card className="span-4">
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Icon name="activity" />
-            Recent alerts
-          </h2>
+          <CardHead icon="activity">Recent alerts</CardHead>
           <ul className="activity">
             {MOCK_ALERTS.slice(0, 5).map((alert) => (
               <li key={alert.id}>
@@ -160,7 +129,7 @@ export function DashboardPage() {
                   <strong>{alert.type.replace(/_/g, ' ')}</strong>
                   <span>
                     {alert.deviceId ?? alert.region ?? 'org'}
-                    {alert.llmMessage ? ` · ${alert.llmMessage.slice(0, 64)}` : ''}
+                    {alert.message ? ` · ${alert.message.slice(0, 64)}` : ''}
                   </span>
                 </div>
                 <time>{relativeTime(alert.createdAt)}</time>
@@ -170,11 +139,8 @@ export function DashboardPage() {
         </Card>
 
         <Card className="span-12">
-          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Icon name="fleet" />
-            Traps
-          </h2>
-          <div className="scroll" style={{ marginTop: '0.75rem' }}>
+          <CardHead icon="fleet">Traps</CardHead>
+          <div className="scroll mt">
             <table>
               <thead>
                 <tr>
@@ -195,12 +161,12 @@ export function DashboardPage() {
                     <td>
                       <StatusChip status={device.status} />
                     </td>
-                    <td style={{ color: 'var(--muted)' }}>{relativeTime(device.lastSeenAt)}</td>
+                    <td className="muted">{relativeTime(device.lastSeenAt)}</td>
                     <td>
                       <Chip>{device.tier}</Chip>
                     </td>
                     <td className="num">{device.fwVer}</td>
-                    <td className="num" style={{ color: 'var(--muted)' }}>
+                    <td className="num muted">
                       {device.lat !== null && device.lon !== null
                         ? `${device.lat.toFixed(4)}, ${device.lon.toFixed(4)}`
                         : '—'}

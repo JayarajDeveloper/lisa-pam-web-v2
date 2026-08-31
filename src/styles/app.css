@@ -323,6 +323,33 @@ a {
   color: var(--accent);
   flex-shrink: 0;
 }
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+.card-head h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.mt {
+  margin-top: 0.75rem;
+}
+.muted {
+  color: var(--muted);
+}
+.chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.metric.danger {
+  color: var(--danger);
+}
 
 .bento {
   display: grid;
@@ -745,6 +772,9 @@ code {
   padding: 0.38rem 0.7rem;
   font-size: 0.78rem;
   border-radius: 10px;
+}
+.btn.block {
+  width: 100%;
 }
 
 .empty {

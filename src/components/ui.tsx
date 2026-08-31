@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import type { DeviceStatus, Species } from '../data/mock';
+import type { DeviceStatus, Species } from '../types';
+import { Icon, type IconName } from './icons';
 
 export function Chip({
   tone = 'neutral',
@@ -42,19 +43,52 @@ export const SPECIES_COLOUR: Record<Species, string> = {
 };
 
 export function Card({
-  title,
   children,
   className,
 }: {
-  title?: string;
   children: ReactNode;
   className?: string;
 }) {
+  return <section className={className ? `card ${className}` : 'card'}>{children}</section>;
+}
+
+export function CardHead({
+  icon,
+  extra,
+  children,
+}: {
+  icon: IconName;
+  extra?: ReactNode;
+  children: ReactNode;
+}) {
   return (
-    <section className={className ? `card ${className}` : 'card'}>
-      {title && <h2>{title}</h2>}
-      {children}
-    </section>
+    <div className="card-head">
+      <h2>
+        <Icon name={icon} />
+        {children}
+      </h2>
+      {extra}
+    </div>
+  );
+}
+
+export function PageToolbar({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon: IconName;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="page-toolbar">
+      <h1>
+        <Icon name={icon} />
+        {title}
+      </h1>
+      <div className="actions">{children}</div>
+    </div>
   );
 }
 
@@ -64,8 +98,7 @@ export function Empty({ children }: { children: ReactNode }) {
 
 export function relativeTime(iso: string | null): string {
   if (!iso) return 'never';
-  const delta = Date.now() - new Date(iso).getTime();
-  const minutes = Math.round(delta / 60_000);
+  const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
   if (minutes < 1) return 'just now';
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.round(minutes / 60);

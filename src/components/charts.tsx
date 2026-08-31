@@ -1,6 +1,6 @@
 import { useId } from 'react';
+import type { Species } from '../types';
 import { SPECIES_COLOUR } from './ui';
-import type { Species } from '../data/mock';
 
 export function LineChart({
   points,
@@ -34,9 +34,9 @@ export function LineChart({
   yMin -= padY;
   yMax += padY;
 
-  const sx = (x: number): number =>
+  const sx = (x: number) =>
     pad.left + ((x - xMin) / (xMax - xMin || 1)) * (width - pad.left - pad.right);
-  const sy = (y: number): number =>
+  const sy = (y: number) =>
     pad.top + (1 - (y - yMin) / (yMax - yMin)) * (height - pad.top - pad.bottom);
 
   const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.x)},${sy(p.y)}`).join(' ');
@@ -46,7 +46,7 @@ export function LineChart({
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      style={{ width: '100%', height: 'auto', display: 'block' }}
+      className="chart-svg"
       role="img"
       aria-label={`${label}: ${points.length} readings, latest ${last.y}`}
     >
@@ -76,45 +76,34 @@ export function SpeciesDonut({
   const r = 42;
   const c = 2 * Math.PI * r;
   let offset = 0;
-  const cx = 56;
-  const cy = 56;
 
   return (
     <div>
       <svg width={size} height={size} viewBox="0 0 112 112" role="img" aria-label="Species mix">
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--ground-deep)" strokeWidth="14" />
+        <circle cx="56" cy="56" r={r} fill="none" stroke="var(--ground-deep)" strokeWidth="14" />
         {counts.map((row) => {
           const len = (row.count / total) * c;
-          const dash = `${len} ${c - len}`;
           const el = (
             <circle
               key={row.species}
-              cx={cx}
-              cy={cy}
+              cx="56"
+              cy="56"
               r={r}
               fill="none"
               stroke={SPECIES_COLOUR[row.species]}
               strokeWidth="14"
-              strokeDasharray={dash}
+              strokeDasharray={`${len} ${c - len}`}
               strokeDashoffset={-offset}
-              transform={`rotate(-90 ${cx} ${cy})`}
-              strokeLinecap="butt"
+              transform="rotate(-90 56 56)"
             />
           );
           offset += len;
           return el;
         })}
-        <text
-          x={cx}
-          y={cy - 4}
-          textAnchor="middle"
-          fontSize="16"
-          fontWeight="800"
-          fill="var(--ink)"
-        >
+        <text x="56" y="52" textAnchor="middle" fontSize="16" fontWeight="800" fill="var(--ink)">
           {total}
         </text>
-        <text x={cx} y={cy + 12} textAnchor="middle" fontSize="8" fill="var(--muted)">
+        <text x="56" y="68" textAnchor="middle" fontSize="8" fill="var(--muted)">
           captures
         </text>
       </svg>
@@ -127,6 +116,53 @@ export function SpeciesDonut({
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+export function Gauge({
+  value,
+  label,
+  color,
+}: {
+  value: number;
+  label: string;
+  color: string;
+}) {
+  const clamped = Math.max(0, Math.min(100, value));
+  const r = 42;
+  const cx = 52;
+  const cy = 50;
+  const arc = (t: number) => {
+    const a = Math.PI * (1 - t);
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  };
+  const from = arc(0);
+  const to = arc(clamped / 100);
+  const trackTo = arc(1);
+
+  return (
+    <div className="gauge">
+      <svg viewBox="0 0 104 62">
+        <path
+          d={`M ${from.x} ${from.y} A ${r} ${r} 0 1 1 ${trackTo.x} ${trackTo.y}`}
+          fill="none"
+          stroke="var(--ground-deep)"
+          strokeWidth="8"
+          strokeLinecap="round"
+        />
+        {clamped > 0 && (
+          <path
+            d={`M ${from.x} ${from.y} A ${r} ${r} 0 ${clamped > 50 ? 1 : 0} 1 ${to.x} ${to.y}`}
+            fill="none"
+            stroke={color}
+            strokeWidth="8"
+            strokeLinecap="round"
+          />
+        )}
+      </svg>
+      <strong>{clamped}%</strong>
+      <span>{label}</span>
     </div>
   );
 }

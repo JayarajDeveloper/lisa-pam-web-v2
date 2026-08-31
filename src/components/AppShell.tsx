@@ -1,5 +1,4 @@
 import { useMemo, type ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { BrandLogo } from './BrandLogo';
 import { Icon } from './icons';
@@ -15,16 +14,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="shell">
       <aside className="sidebar">
-        <NavLink to="/" className="brand" end aria-label="LISA PAM ops">
+        <a href="/" className="brand" aria-label="LISA PAM ops">
           <BrandLogo />
-        </NavLink>
+        </a>
 
         <nav className="nav-section nav" aria-label="Operations">
           <div className="nav-label">Operations</div>
-          <NavLink to="/" end>
+          <a href="/" className="active">
             <Icon name="grid" />
             Overview
-          </NavLink>
+          </a>
         </nav>
 
         <div className="sidebar-foot">
@@ -49,7 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <span>{user?.role}</span>
               </span>
             </div>
-            <button className="btn secondary small" type="button" onClick={() => signOut()}>
+            <button className="btn secondary small" type="button" onClick={signOut}>
               Sign out
             </button>
           </div>
